@@ -16,7 +16,7 @@ class Movie extends Model
         "timeslot"
     ] ;
 
-    public function cinemas() {
-        return $this->belongsTo(Cinema::class);
+    public function customers() {
+        return $this->hasMany(Customer::class);
     }
 }
