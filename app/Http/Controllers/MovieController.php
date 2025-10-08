@@ -11,6 +11,6 @@ class MovieController extends Controller
     //
     public function index() {
         $movies = Movie::all();
-        return Inertia::render("Movie/Movies");
+        return Inertia::render("Movie/Movies", compact('movies'));
     }
 }
