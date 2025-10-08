@@ -45,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="sm:col-span-3 md:col-span-3 lg:col-span-1 col-span-3">
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
-                            <CardDescription class="text-lg">Total Seats Sold Official</CardDescription>
+                            <CardDescription class="text-lg">Total Seats Sold</CardDescription>
                             <CardTitle class="text-6xl object-right">240</CardTitle>
                         </CardHeader>
                     </Card>
