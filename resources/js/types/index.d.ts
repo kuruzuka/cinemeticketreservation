@@ -26,6 +26,16 @@ export type AppPageProps<
     sidebarOpen: boolean;
 };
 
+export interface Movie {
+    id: number;
+    title: string;
+    author: string;
+    director: string;
+    cinema: string;
+    start: string;
+    end: string;
+}
+
 export interface User {
     id: number;
     name: string;
