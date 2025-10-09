@@ -20,5 +20,9 @@ class Booking extends Model
         "seat",
         "price"
     ];
+
+    public function customers() {
+        return $this->hasMany(Customer::class);
+    }
     
 }
