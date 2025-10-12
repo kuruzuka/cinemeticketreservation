@@ -14,12 +14,12 @@
         PaginationFirst, PaginationLast,
         PaginationNext, PaginationPrevious
     } from '@/components/ui/pagination'
+    import { SquareMousePointerIcon, SquarePenIcon, Trash2Icon } from 'lucide-vue-next'
+    import { Link } from '@inertiajs/vue3'
+    import { route } from 'ziggy-js'
+    import { router } from '@inertiajs/vue3'
 
-    const memInfo = (performance as any).memory;
-    console.log(memInfo);
-
-
-    const currentPage = ref(1)
+    const currentPage = ref(1) as any
     const perPage = ref(10)
 
     const totalPages = computed(() => Math.ceil(localMovies.value.length / perPage.value))
@@ -188,100 +188,119 @@
         runSorts()
     }, { immediate: true })
 
+    const handleDelete = (id: number) => {
+        if (confirm("Are you sure you want to delete?")) {
+            router.delete(route('movie.destroy', {id}))
+        }
+    }
+
 </script>
 
 
 <template>
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="p-4 space-y-6">
-      <div class="flex gap-4 items-center">
-        <Button class="w-[160px]" @click="handleAddMovie">Add Movie</Button>
-        <Label class="ml-5">Sort By: </Label>
-        <Select v-model="sortKey">
-          <SelectTrigger class="w-[200px]">
-            <SelectValue placeholder="Sort by..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="title">Title</SelectItem>
-            <SelectItem value="director">Director</SelectItem>
-            <SelectItem value="cinema">Cinema</SelectItem>
-            <SelectItem value="timeslot">Timeslot (Start)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        <div class="flex gap-4 items-center">
+            <Button class="w-[160px]" @click="handleAddMovie">Add Movie</Button>
+            <Label class="ml-5">Sort By: </Label>
+            <Select v-model="sortKey">
+            <SelectTrigger class="w-[200px]">
+                <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="title">Title</SelectItem>
+                <SelectItem value="director">Director</SelectItem>
+                <SelectItem value="cinema">Cinema</SelectItem>
+                <SelectItem value="timeslot">Timeslot (Start)</SelectItem>
+            </SelectContent>
+            </Select>
+        </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead>Director</TableHead>
-            <TableHead>Cinema</TableHead>
-            <TableHead>Timeslot</TableHead>
-          </TableRow>
-        </TableHeader>
+        <Table>
+            <TableHeader>
+            <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead>Author</TableHead>
+                <TableHead>Director</TableHead>
+                <TableHead>Cinema</TableHead>
+                <TableHead>Timeslot</TableHead>
+                <TableHead class="text-center">Action</TableHead>
+            </TableRow>
+            </TableHeader>
 
-        <TableBody>
-          <TableRow v-for="movie in paginatedMovies" :key="movie.id">
-            <TableCell>{{ movie.id }}</TableCell>
-            <TableCell>{{ movie.title }}</TableCell>
-            <TableCell>{{ movie.author }}</TableCell>
-            <TableCell>{{ movie.director }}</TableCell>
-            <TableCell>{{ movie.cinema }}</TableCell>
-            <TableCell>{{ movie.start + ' - ' + movie.end }}</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-        <div class="flex justify-center mt-6">
-            <Pagination>
+            <TableBody>
+            <TableRow v-for="movie in paginatedMovies" :key="movie.id">
+                <TableCell>{{ movie.id }}</TableCell>
+                <TableCell>{{ movie.title }}</TableCell>
+                <TableCell>{{ movie.author }}</TableCell>
+                <TableCell>{{ movie.director }}</TableCell>
+                <TableCell>{{ movie.cinema }}</TableCell>
+                <TableCell>{{ movie.start + ' - ' + movie.end }}</TableCell>
+                <TableCell class="space-x-2 flex justify-center">
+                    <Link :href="route('movie.book', {id: movie.id})">
+                        <Button>
+                            <SquareMousePointerIcon /> Book
+                        </Button>
+                    </Link>
+                    <Link :href="route()">
+                        <Button class="bg-blue-500">
+                            <SquarePenIcon /> Edit
+                        </Button>
+                    </Link>
+                    <Link>
+                        <Button class="bg-red-500" @click="handleDelete(movie.id)">
+                            <Trash2Icon /> Delete
+                        </Button>
+                    </Link>
+                </TableCell>
+            </TableRow>
+            </TableBody>
+        </Table>
+        <div class="flex justify-start mt-6 ">
+            <Pagination :items-per-page="perPage">
                 <PaginationContent>
-                <PaginationItem class="mx-5">
+                
                     <PaginationFirst
                     :disabled="currentPage === 1"
                     @click="currentPage = 1"
                     />
-                </PaginationItem>
 
-                <PaginationItem class="mx-5">
                     <PaginationPrevious
                     :disabled="currentPage === 1"
                     @click="currentPage--"
                     />
-                </PaginationItem>
 
-                <PaginationItem
-                    v-for="(page, idx) in visiblePages"
-                    :key="idx"
-                    >
-                    <template v-if="page === '...'">
-                        <PaginationEllipsis />
-                    </template>
-                    <template v-else>
-                        <Button
-                        variant="outline"
-                        size="sm"
-                        :class="page === currentPage ? 'bg-primary text-white' : ''"
-                        @click="currentPage = page"
+                    <PaginationItem
+                        v-for="(page, idx) in visiblePages"
+                        :key="idx"
                         >
-                        {{ page }}
-                        </Button>
-                    </template>
-                </PaginationItem>
-
-                <PaginationItem class="mx-5">
+                        <template v-if="page === '...'">
+                            <PaginationEllipsis />
+                        </template>
+                        <template v-else>
+                            <Button
+                            variant="outline"
+                            size="sm"
+                            :class="page === currentPage ? 'bg-primary text-white' : ''"
+                            @click="currentPage = page"
+                            >
+                            {{ page }}
+                            </Button>
+                        </template>
+                    </PaginationItem>
+                    
                     <PaginationNext
+                    class="ml-2"
                     :disabled="currentPage === totalPages"
                     @click="currentPage++"
                     />
-                </PaginationItem>
-
-                <PaginationItem class="mx-5">
+                
                     <PaginationLast
                     :disabled="currentPage === totalPages"
                     @click="currentPage = totalPages"
                     />
-                </PaginationItem>
+                    
                 </PaginationContent>
             </Pagination>
         </div>
@@ -292,17 +311,12 @@
           <TableRow>
             <TableHead>Algorithm</TableHead>
             <TableHead>Execution Time (ms)</TableHead>
-            <TableHead>Memory Used (bytes)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow v-for="r in results" :key="r.name">
             <TableCell>{{ r.name }}</TableCell>
             <TableCell>{{ r.time.toFixed(3) }}</TableCell>
-            <TableCell>
-                {{ r.mem ? (r.mem / 1024 / 1024).toFixed(2) + ' MB' : 'N/A' }}
-            </TableCell>
-
           </TableRow>
         </TableBody>
       </Table>

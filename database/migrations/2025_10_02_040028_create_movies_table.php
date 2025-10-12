@@ -16,9 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('author');
             $table->string('director');
-            $table->string('cinema');
-            $table->time('start')->nullable();
-            $table->time('end')->nullable();
+            $table->string('genre');
             $table->timestamps();
         });
     }

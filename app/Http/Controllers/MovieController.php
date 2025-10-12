@@ -13,4 +13,18 @@ class MovieController extends Controller
         $movies = Movie::all();
         return Inertia::render("Movie/Movies", compact('movies'));
     }
+
+    public function book(Movie $movie) {
+        return Inertia::render('Movie/Book', compact('movie'));
+    }
+
+    public function edit(Movie $movie) {
+        return Inertia::render('Movie/Edit', compact('movie'));
+    }
+
+    public function destory(Movie $movie) {
+        $movie->delete();
+        return redirect()->route('movies');
+    }
+
 }

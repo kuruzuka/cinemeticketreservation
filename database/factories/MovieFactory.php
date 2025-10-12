@@ -27,7 +27,7 @@ class MovieFactory extends Factory
         $end = date('H:i', $endTimestamp);
 
         return [
-            'title' => $this->faker->sentence(3),
+            'title' => $this->faker->realText(30),
             'author' => $this->faker->name(),
             'director' => $this->faker->name(),
             'cinema' => 'Cinema ' . $this->faker->numberBetween(1, 4),

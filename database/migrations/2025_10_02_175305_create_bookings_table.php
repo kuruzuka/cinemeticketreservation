@@ -13,12 +13,10 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->string('customer_fname');
-            $table->string('customer_midname');
-            $table->string('customer_lname');
-            $table->string('movie');
-            $table->string('cinema');
-            $table->decimal('price');
+            $table->foreignId('customer_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
+            $table->foreignId('schedule_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
+            $table->foreignId('seat_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
+            $table->decimal('price',10,2);
             $table->timestamps();
         });
     }

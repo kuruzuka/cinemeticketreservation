@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import type { Seat, Booking, Movie, BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import {
     Card,
@@ -18,6 +18,15 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard().url,
     },
 ];
+
+interface Props {
+    movies: Movie[];
+    bookings: Booking[];
+    seats: Seat[];
+}
+
+const props = defineProps<Props>();
+
 </script>
 
 <template>
@@ -30,7 +39,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
                             <CardDescription class="text-lg">Total Movies</CardDescription>
-                            <CardTitle class="text-6xl object-right">15</CardTitle>
+                            <CardTitle class="text-6xl object-right">{{ props.movies.length }}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
@@ -38,7 +47,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
                             <CardDescription class="text-lg">Total Bookings</CardDescription>
-                            <CardTitle class="text-6xl object-right">150</CardTitle>
+                            <CardTitle class="text-6xl object-right">{{ props.bookings.length }}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
@@ -46,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
                             <CardDescription class="text-lg">Total Seats Sold</CardDescription>
-                            <CardTitle class="text-6xl object-right">240</CardTitle>
+                            <CardTitle class="text-6xl object-right">{{ props.seats.length }}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>

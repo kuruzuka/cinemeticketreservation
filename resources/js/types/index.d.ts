@@ -36,6 +36,22 @@ export interface Movie {
     end: string;
 }
 
+export interface Booking {
+    id: number;
+    customer_fname: string;
+    customer_midname: string;
+    customer_lname: string;
+    title: string;
+    cinema: string;
+    timeslot: string;
+    seats: string;
+}
+
+export interface Seat {
+    id: number;
+    seat_number: string;
+}
+
 export interface User {
     id: number;
     name: string;

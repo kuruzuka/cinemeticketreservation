@@ -13,7 +13,7 @@ class Movie extends Model
         "title",
         "author",
         "director",
-        "timeslot"
+        "genre"
     ] ;
 
     public function customers() {

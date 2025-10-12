@@ -12,17 +12,10 @@ class Booking extends Model
 
     protected $fillable = [
         "customer_id",
-        "customer_fname",
-        "customer_midname",
-        "customer_lname",
-        "movie",
-        "cinema",
-        "seat",
-        "price"
+        "schedule_id",
+        "seat_id",
+        "price",
     ];
 
-    public function customers() {
-        return $this->hasMany(Customer::class);
-    }
     
 }

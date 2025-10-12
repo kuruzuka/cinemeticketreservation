@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Booking;
+use App\Models\Movie;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,8 +45,13 @@ class AuthenticatedSessionController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
 
+        
         $request->session()->regenerate();
-
+        $moviesCount = Movie::count();
+        $bookingsCount = Booking::count();
+        $request->session()->flash('moviesCount', $moviesCount);
+        $request->session()->flash('bookingsCount', $bookingsCount);
+        
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

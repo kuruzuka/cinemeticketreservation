@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Customer extends Model
+class Timeslot extends Model
 {
-    /** @use HasFactory<\Database\Factories\CustomerFactory> */
+    /** @use HasFactory<\Database\Factories\TimeslotFactory> */
     use HasFactory;
 
     protected $fillable = [
-        "name"
+        "start_time",
+        "end_time",
     ] ;
 }
