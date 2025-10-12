@@ -14,6 +14,6 @@ class Seat extends Model
     ] ;
 
     public function cinemas() {
-        return $this->belongsTo(Cinema::class);
+        return $this->hasMany(Booking::class);
     }
 }

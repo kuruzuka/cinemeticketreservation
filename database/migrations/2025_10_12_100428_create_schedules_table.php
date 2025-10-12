@@ -17,8 +17,7 @@ return new class extends Migration
             $table->foreignId('cinema_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
             $table->foreignId('city_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
             $table->foreignId('timeslot_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
-            $table->unique(['cinema_id','timeslot_id']);
-            $table->unique(['city_id','movie_id','cinema_id','timeslot_id']);
+            $table->unique(['city_id', 'cinema_id', 'timeslot_id']);
             $table->timestamps();
         });
     }
