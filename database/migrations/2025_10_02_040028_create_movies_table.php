@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('author');
             $table->string('director');
-            $table->string('genre');
+            $table->foreignId('genre_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
             $table->timestamps();
         });
     }

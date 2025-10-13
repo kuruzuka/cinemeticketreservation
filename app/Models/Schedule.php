@@ -13,7 +13,7 @@ class Schedule extends Model
     protected $fillable = [
         "movie_id",
         "cinema_id",
-        "timeslot_id",
         "city_id",
+        "timeslot_id",
     ] ;
 }

@@ -18,6 +18,10 @@ class ScheduleFactory extends Factory
     {
         return [
             //
+            'movie_id'    => $this->faker->numberBetween(1, 10000),
+            'cinema_id'   => $this->faker->numberBetween(1, 5),
+            'city_id'     => $this->faker->numberBetween(1, 500),
+            'timeslot_id' => $this->faker->numberBetween(1, 10),
         ];
     }
 }
