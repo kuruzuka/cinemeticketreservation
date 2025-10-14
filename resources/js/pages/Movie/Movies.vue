@@ -7,6 +7,7 @@
     import { Button } from '@/components/ui/button';
     import { Label } from '@/components/ui/label';
     import { Input } from '@/components/ui/input';
+    import { TrashIcon, FilePenLineIcon } from 'lucide-vue-next';
     import {
         AlertDialog,
         AlertDialogAction,
@@ -183,22 +184,31 @@ import { route } from 'ziggy-js';
     }, { flush: 'sync' })
 
     const page = usePage()
+    const isDeleting = ref(false)
 
-    const handleDelete = () => {
-        router.delete(route('movie.destroy', { id: movieToDelete.value!.id }), {
+    const handleDelete = async () => {
+        if (!movieToDelete.value) return
+        isDeleting.value = true
+        router.delete(route('movie.destroy', { id: movieToDelete.value.id }), {
             preserveState: false,
             onSuccess: () => {
-                toast.success('Deletion Successful!', {
-                    description: `Movie: ${movieToDelete.value!.title} has been deleted successfully.`,
-                })
+            toast.success('Deletion Successful!', {
+                description: `Movie: ${movieToDelete.value!.title} has been deleted successfully.`,
+            })
+            showDialog.value = false
+            movieToDelete.value = null
             },
             onError: () => {
-                toast.error('Deletion Failed.', {
-                    description: `Something went wrong while deleting the movie.`,
-                })
-            }
+            toast.error('Deletion Failed!', {
+                description: 'Something went wrong while deleting the movie.',
+            })
+            },
+            onFinish: () => {
+            isDeleting.value = false
+            },
         })
     }
+
 
     const movieToDelete = ref<{ id: number; title: string } | null>(null)
     const showDialog = ref(false)
@@ -263,13 +273,15 @@ import { route } from 'ziggy-js';
                         <TableCell>{{ movie.director }}</TableCell>
                         <TableCell>{{ movie.genre.name }}</TableCell>
                         <TableCell class="flex justify-center space-x-2">
-                            <Button class="bg-blue-600"
+                            <Button class="bg-blue-700 hover:bg-blue-500"
+                            :disabled="isDeleting"
                             @click="$inertia.visit(route('movie.edit', {id: movie.id}))">
-                                Edit
+                                <FilePenLineIcon /> Edit
                             </Button>
-                            <Button class="bg-red-600"
+                            <Button class="bg-red-700 hover:bg-red-500"
+                            :disabled="isDeleting"
                             @click="confirmDelete(movie.id, movie.title)">
-                                Delete
+                                <TrashIcon /> Delete
                             </Button>
                         </TableCell>
                     </TableRow>
@@ -323,6 +335,7 @@ import { route } from 'ziggy-js';
                         <AlertDialogCancel @click="showDialog = false">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                         class="bg-red-600 text-white hover:bg-red-700"
+                        :disabled="isDeleting"
                         @click="handleDelete"
                         >
                             Yes, Delete!

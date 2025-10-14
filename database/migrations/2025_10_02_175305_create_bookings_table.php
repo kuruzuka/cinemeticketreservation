@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name');
-            $table->foreignId('schedule_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
-            $table->foreignId('seat_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
+            $table->foreignId('schedule_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('seat_id')->constrained()->cascadeOnDelete()->cascadeOnUpdate();
             $table->unique(['seat_id', 'schedule_id']);
             $table->timestamps();
         });

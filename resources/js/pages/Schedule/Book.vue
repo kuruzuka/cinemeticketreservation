@@ -6,6 +6,7 @@
     import { Input } from '@/components/ui/input';
     import { Button } from '@/components/ui/button';
     import { usePage, useForm } from '@inertiajs/vue3';
+    import { TicketCheckIcon } from 'lucide-vue-next';
     import { toast } from 'vue-sonner';
     import { computed } from 'vue';
 import { route } from 'ziggy-js';
@@ -96,12 +97,12 @@ import { route } from 'ziggy-js';
             },
             onError: () => {
                 if (form.errors.seat_id) {
-                    toast.error('Seat Needed', {
+                    toast.error('Seat Needed!', {
                     description: form.errors.seat_id,
                     })
                 }
                 if (form.errors.customer_name) {
-                    toast.error('Name Required', {
+                    toast.error('Name Required!', {
                     description: form.errors.customer_name,
                     })
                 }
@@ -171,7 +172,12 @@ import { route } from 'ziggy-js';
                     </div>
                 </div>
 
-                <Button class="w-full mt-6" @click="handleSubmit">Confirm Booking</Button>
+                <Button class="w-full mt-6" 
+                @click="handleSubmit" 
+                :disabled="form.processing">
+                    <TicketCheckIcon />
+                    Confirm Booking
+                </Button>
             </div>
 
             <!-- Right side - Seat selection -->

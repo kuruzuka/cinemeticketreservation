@@ -6,6 +6,7 @@
     import { Label } from '@/components/ui/label';
     import { Button } from '@/components/ui/button';
     import { toast } from 'vue-sonner';
+    import { SaveIcon } from 'lucide-vue-next';
     import {
         Select,
         SelectContent,
@@ -104,7 +105,12 @@ import { route } from 'ziggy-js';
                     <Input v-model="form.director" type="text" />
                 </div>
             </div>
-            <Button class="w-[100px]" @click="handleSubmit">Save</Button>
+            <Button class="w-[100px]" 
+            :disabled="form.processing"
+            @click="handleSubmit">
+                <SaveIcon />
+                Save
+            </Button>
         </div>
     </AppLayout>
 </template>

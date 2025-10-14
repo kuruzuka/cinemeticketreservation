@@ -15,6 +15,7 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('bookings',[BookingController::class, 'index'])->name('bookings');
     Route::post('bookings',[BookingController::class, 'store'])->name('bookings.store');
+    Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
     Route::get('movies', [MovieController::class, 'index'])->name('movies');
     Route::get('movies/{movie}/edit', [MovieController::class, 'edit'])->name('movie.edit');

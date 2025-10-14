@@ -7,7 +7,7 @@
     import { Button } from '@/components/ui/button';
     import { Label } from '@/components/ui/label';
     import { Input } from '@/components/ui/input';
-    import { Link } from 'lucide-vue-next';
+    import { TicketIcon } from 'lucide-vue-next';
     import {
         Select,
         SelectContent,
@@ -254,7 +254,7 @@
                     <TableCell>{{ schedule.timeslot.start_time + " - " + schedule.timeslot.end_time }}</TableCell>
                     <TableCell class="flex justify-center">
                         <Button @click="$inertia.visit(route('schedules.book', {id: schedule.id}))">
-                            Book
+                            <TicketIcon /> Book
                         </Button>
                     </TableCell>
                 </TableRow>
