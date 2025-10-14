@@ -80,4 +80,16 @@ class BookingController extends Controller
 
         return redirect()->route('bookings')->with('message','Booking Successful!');
     }
+
+    public function destroy(Booking $booking)
+    {
+        // Delete ALL bookings for this customer and schedule
+        Booking::where('customer_name', $booking->customer_name)
+            ->where('schedule_id', $booking->schedule_id)
+            ->delete();
+
+        return redirect()->route('bookings')->with('message', 'Booking deleted successfully.');
+    }
+
+
 }
