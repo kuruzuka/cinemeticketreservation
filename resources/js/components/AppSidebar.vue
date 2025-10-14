@@ -14,7 +14,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, ClapperboardIcon, CalendarCheck, Tickets } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -26,12 +26,17 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Movies',
         href: '/movies',
-        icon: LayoutGrid,
+        icon: ClapperboardIcon,
+    },
+    {
+        title: 'Schedules',
+        href: '/schedules',
+        icon: CalendarCheck
     },
     {
         title: 'Bookings',
         href: '/bookings',
-        icon: LayoutGrid,
+        icon: Tickets,
     },
 ];
 

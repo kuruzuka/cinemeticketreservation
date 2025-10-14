@@ -170,3 +170,16 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* === Fix Sonner Toast Colors === */
+[data-sonner-toast][data-type="success"] {
+  background-color: #a0ebbc !important; /* Tailwind green-600 */
+  color: #000000 !important;
+  border: 1px solid #4deb87 !important; /* green-700 */
+}
+
+[data-sonner-toast][data-type="error"] {
+  background-color: #f19c9c !important; /* Tailwind red-600 */
+  color: #000000 !important;
+  border: 1px solid #e86f6f !important; /* red-700 */
+}

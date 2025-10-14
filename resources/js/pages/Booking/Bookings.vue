@@ -1,93 +1,130 @@
 <script setup lang="ts">
-    import AppLayout from '@/layouts/AppLayout.vue'
+    import AppLayout from '@/layouts/AppLayout.vue';
     import type { BreadcrumbItem, Booking } from '@/types';
-    import { 
-        Table, TableBody, TableCaption, TableCell, 
-        TableRow, TableHead, TableHeader, TableEmpty
-    } from '@/components/ui/table';
-    import { usePage } from '@inertiajs/vue3';
-    import { watch } from 'vue';
-    import { Toaster } from '@/components/ui/sonner';
-    import { toast } from 'vue-sonner';
-    import 'vue-sonner/style.css'
+    import { Head, router } from '@inertiajs/vue3';
+    import { ref } from 'vue';
 
-    const breadcrumbs : BreadcrumbItem[] = [
-        {
-            title: 'Bookings',
-            href: '/bookings'
-        },
+    import {
+        Table,
+        TableBody,
+        TableCaption,
+        TableCell,
+        TableHead,
+        TableHeader,
+        TableRow,
+    } from "@/components/ui/table"
+
+    import {
+        Pagination,
+        PaginationContent,
+        PaginationEllipsis,
+        PaginationItem,
+        PaginationNext,
+        PaginationPrevious,
+    } from '@/components/ui/pagination';
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Bookings', href: '/bookings' },
     ];
-    
-    defineProps<{bookings: Booking[]}>()
 
-    const page = usePage()
-    const flash = page.props.flash as Record<string, string> | undefined
+    const props = defineProps<{
+        bookings: {
+            data: Booking[],
+            current_page: number,
+            last_page: number,
+            per_page: number,
+            total: number,
+        }
+    }>()
 
-    if ( flash?.['toast.success'] ) {
-        toast.success(flash['toast.success'])
+    // reactive pagination state
+    const currentPage = ref(props.bookings.current_page)
+    const itemsPerPage = props.bookings.per_page
+
+    function goToPage(page: number) {
+        if (page !== currentPage.value) {
+            router.visit(`?page=${page}`, { preserveScroll: true })
+        }
     }
 
-    watch(
-  () => page.props.flash,
-  (newFlash) => {
-    if (newFlash?.['toast.success']) {
-      toast.success(newFlash['toast.success'])
+    function formatDate(dateString: string) {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        })
     }
-    if (newFlash?.['toast.error']) {
-      toast.error(newFlash['toast.error'])
-    }
-  },
-  { immediate: true } // also run on mount if flash exists
-)
-
 </script>
 
 <template>
-    
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <Toaster />
-        <div class="p-4">
-            <div>
-                <Table>
-                    <TableCaption>
-                        <div v-if="bookings.length === 0">
-                            <p class="italic">No bookings.</p>
-                        </div>
-                        <div v-else>
-                            <p class="italic">Booking list.</p>
-                        </div>
-                    </TableCaption>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead class="w-[100px]">
-                                ID
-                            </TableHead>
-                            <TableHead>Customer</TableHead>
-                            <TableHead>Movie</TableHead>
-                            <TableHead>Cinema</TableHead>
-                            <TableHead>Seats</TableHead>
-                            <TableHead>Timeslot</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow v-for="booking in bookings" :key="booking.id">
-                            <TableCell class="font-medium">
-                                {{ booking.id }}
-                            </TableCell>
-                            <TableCell>
-                                {{ booking.customer_fname + " " + booking.customer_midname + " " + booking.customer_lname }}
-                            </TableCell>
-                            <TableCell>{{ booking.title }}</TableCell>
-                            <TableCell>{{ booking.cinema }}</TableCell>
-                            <TableCell>{{ booking.seats }}</TableCell>
-                            <TableCell>{{ booking.timeslot }}</TableCell>
-                        </TableRow>
-                    </TableBody>
-                    
-                </Table>
-            </div>
-        </div>
+  <Head title="Bookings" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="p-4">
+      <Table>
+        <TableCaption>A list of customer bookings.</TableCaption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Customer</TableHead>
+            <TableHead>Movie</TableHead>
+            <TableHead>City</TableHead>
+            <TableHead>Cinema</TableHead>
+            <TableHead>Show Date</TableHead>
+            <TableHead>Timeslot</TableHead>
+            <TableHead>Seats</TableHead>
+            <TableHead>Date Booked</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="booking in bookings.data" :key="booking.id">
+            <TableCell>{{ booking.customer_name }}</TableCell>
+            <TableCell>{{ booking.schedule.movie.title }}</TableCell>
+            <TableCell>{{ booking.schedule.city.name }}</TableCell>
+            <TableCell>{{ booking.schedule.cinema.name }}</TableCell>
+            <TableCell>{{ formatDate(booking.schedule.show_date) }}</TableCell>
+            <TableCell>
+              {{ booking.schedule.timeslot.start_time }} -
+              {{ booking.schedule.timeslot.end_time }}
+            </TableCell>
+            <TableCell>{{ booking.seats.join(', ') }}</TableCell>
+            <TableCell>{{ formatDate(booking.created_at as string) }}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
-    </AppLayout>
-
+      <!-- PAGINATION -->
+      <div class="mt-4 flex justify-center">
+        <Pagination
+          v-slot="{ page }"
+          :items-per-page="itemsPerPage"
+          :total="bookings.total"
+          :default-page="currentPage"
+          @update:page="val => goToPage(val)"
+        >
+          <PaginationContent v-slot="{ items }">
+            <PaginationPrevious
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+            />
+            <template v-for="(item, index) in items" :key="index">
+              <PaginationItem
+                v-if="item.type === 'page'"
+                :value="item.value"
+                :is-active="item.value === currentPage"
+                @click="goToPage(item.value)"
+              >
+                {{ item.value }}
+              </PaginationItem>
+            </template>
+            <PaginationEllipsis v-if="bookings.last_page > 7" :index="4" />
+            <PaginationNext
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === bookings.last_page"
+            />
+          </PaginationContent>
+        </Pagination>
+      </div>
+    </div>
+  </AppLayout>
 </template>

@@ -1,325 +1,335 @@
 <script setup lang="ts">
-    import { ref, watch, computed } from 'vue'
-    import AppLayout from '@/layouts/AppLayout.vue'
-    import { Movie, type BreadcrumbItem } from '@/types'
+    import AppLayout from '@/layouts/AppLayout.vue';
+    import type { BreadcrumbItem, Movie } from '@/types';
+    import { ref, computed, onMounted, watch } from 'vue';
+    import { Head, router, usePage } from '@inertiajs/vue3';
+    import { toast } from 'vue-sonner';
+    import { Button } from '@/components/ui/button';
+    import { Label } from '@/components/ui/label';
+    import { Input } from '@/components/ui/input';
     import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-    } from '@/components/ui/table'
-    import { Button } from '@/components/ui/button'
-    import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
-    import { Label } from '@/components/ui/label'
+        AlertDialog,
+        AlertDialogAction,
+        AlertDialogCancel,
+        AlertDialogContent,
+        AlertDialogDescription,
+        AlertDialogFooter,
+        AlertDialogHeader,
+        AlertDialogTitle,
+        AlertDialogTrigger,
+    } from "@/components/ui/alert-dialog"
+    import {
+        Select,
+        SelectContent,
+        SelectGroup,
+        SelectItem,
+        SelectLabel,
+        SelectTrigger,
+        SelectValue,
+    } from "@/components/ui/select";
+    import {
+        Table,
+        TableBody,
+        TableCaption,
+        TableCell,
+        TableHead,
+        TableHeader,
+        TableRow,
+    } from '@/components/ui/table';
     import { 
-        Pagination, PaginationContent, 
-        PaginationItem, PaginationEllipsis,
-        PaginationFirst, PaginationLast,
-        PaginationNext, PaginationPrevious
-    } from '@/components/ui/pagination'
-    import { SquareMousePointerIcon, SquarePenIcon, Trash2Icon } from 'lucide-vue-next'
-    import { Link } from '@inertiajs/vue3'
-    import { route } from 'ziggy-js'
-    import { router } from '@inertiajs/vue3'
+        Pagination,
+        PaginationContent,
+        PaginationEllipsis,
+        PaginationItem,
+        PaginationNext,
+        PaginationPrevious,
+    } from '@/components/ui/pagination';
+import { route } from 'ziggy-js';
 
-    const currentPage = ref(1) as any
-    const perPage = ref(10)
-
-    const totalPages = computed(() => Math.ceil(localMovies.value.length / perPage.value))
-
-    const paginatedMovies = computed(() => {
-        const start = (currentPage.value - 1) * perPage.value
-        return localMovies.value.slice(start, start + perPage.value)
-    })
-
-    const visiblePages = computed(() => {
-        const total = totalPages.value
-        const current = currentPage.value
-        const delta = 2 // how many pages to show around current
-        const range: number[] = []
-        const rangeWithDots: (number | string)[] = []
-
-        let start = Math.max(2, current - delta)
-        let end = Math.min(total - 1, current + delta)
-
-        // adjust window when near start or end
-        if (current - delta <= 2) end = 1 + 2 * delta
-        if (current + delta >= total - 1) start = total - 2 * delta
-
-        // clamp
-        start = Math.max(2, start)
-        end = Math.min(total - 1, end)
-
-        // fill range
-        for (let i = start; i <= end; i++) range.push(i)
-
-        // build with ellipses
-        if (start > 2) rangeWithDots.push('...')
-        rangeWithDots.push(...range)
-        if (end < total - 1) rangeWithDots.push('...')
-
-        return [1, ...rangeWithDots, total].filter(
-            (v, i, arr) => total > 1 && (i === 0 || i === arr.length - 1 || v !== arr[i - 1])
-        )
-    })
-
-
-
-    // --- Breadcrumbs ---
     const breadcrumbs: BreadcrumbItem[] = [
-        { 
-            title: 'Movies', 
-            href: '/movies' 
-        },
-    ]
+        { title: 'Movies', href: '/movies' },
+    ];
 
-    // --- Props ---
-    interface Props {
-        movies: Movie[],
-    }
-    const props = defineProps<Props>()
+    const props = defineProps<{
+        movies: Movie[]
+    }>()
 
-    // --- Traditional Merge Sort ---
-    function mergeSort<T>(arr: T[], compareFn: (a: T, b: T) => number): T[] {
-        if (arr.length <= 1) return arr
+    // ===== REACTIVE STATES =====
+    const data = ref<Movie[]>([...props.movies])
+    const originalSorted = ref<Movie[]>([])
+    const improvedSorted = ref<Movie[]>([])
+    const currentPage = ref(1)
+    const itemsPerPage = 10
 
-        const mid = Math.floor(arr.length / 2)
-        const left = mergeSort(arr.slice(0, mid), compareFn)
-        const right = mergeSort(arr.slice(mid), compareFn)
+    const originalTime = ref(0)
+    const improvedTime = ref(0)
+    const searchQuery = ref('')
 
-        return merge(left, right, compareFn)
-    }
+    // ===== SEARCH FUNCTIONALITY =====
+    const searchedData = computed(() => {
+        const query = searchQuery.value.toLowerCase().trim()
+        if (!query) return data.value
 
-    function merge<T>(left: T[], right: T[], compareFn: (a: T, b: T) => number): T[] {
-        const result: T[] = []
-        let i = 0, j = 0
-        while (i < left.length && j < right.length) {
-            if (compareFn(left[i], right[j]) <= 0) result.push(left[i++])
-            else result.push(right[j++])
+        return data.value.filter(m => [
+            m.title,
+            m.author,
+            m.director,
+            m.genre.name
+        ].some(field => field.toLowerCase().includes(query)))
+    })
+
+    // ===== SORTING LOGIC =====
+    const sortKey = ref<'title' | 'author' | 'director'>('title')
+
+    function getSortValue(movie: Movie, key: string): string {
+        switch (key) {
+            case 'title': return movie.title
+            case 'author': return movie.author
+            case 'director': return movie.director
+            default: return ''
         }
-        return result.concat(left.slice(i)).concat(right.slice(j))
     }
 
-    // --- Improved Merge Sort ---
-    function improvedMergeSort<T>(arr: T[], aux: T[], left: number, right: number, 
-    compareFn: (a: T, b: T) => number) : void {
+    // ===== ORIGINAL MERGE SORT =====
+    function originalMergeSort(arr: Movie[], left: number, right: number) {
         if (left < right) {
             const mid = Math.floor((left + right) / 2)
-            improvedMergeSort(arr, aux, left, mid, compareFn)
-            improvedMergeSort(arr, aux, mid + 1, right, compareFn)
-            if (compareFn(arr[mid], arr[mid + 1]) <= 0) return // run detection
-            mergeWithAux(arr, aux, left, mid, right, compareFn)
+            originalMergeSort(arr, left, mid)
+            originalMergeSort(arr, mid + 1, right)
+            originalMerge(arr, left, mid, right)
         }
     }
 
-    function mergeWithAux<T>(arr: T[], aux: T[], left: number, mid: number, right: number,
-    compareFn: (a: T, b: T) => number
-    ) : void {
+    function originalMerge(arr: Movie[], left: number, mid: number, right: number) {
+        const n1 = mid - left + 1
+        const n2 = right - mid
+        const L = arr.slice(left, left + n1)
+        const R = arr.slice(mid + 1, mid + 1 + n2)
+
+        let i = 0, j = 0, k = left
+        while (i < n1 && j < n2) {
+            const leftVal = getSortValue(L[i], sortKey.value)
+            const rightVal = getSortValue(R[j], sortKey.value)
+            arr[k++] = leftVal.localeCompare(rightVal) <= 0 ? L[i++] : R[j++]
+        }
+        while (i < n1) arr[k++] = L[i++]
+        while (j < n2) arr[k++] = R[j++]
+    }
+
+    // ===== IMPROVED MERGE SORT (with run detection) =====
+    function improvedMergeSort(arr: Movie[], aux: Movie[], left: number, right: number) {
+        if (left < right) {
+            const mid = Math.floor((left + right) / 2)
+            improvedMergeSort(arr, aux, left, mid)
+            improvedMergeSort(arr, aux, mid + 1, right)
+
+            if (arr[mid].title.localeCompare(arr[mid + 1].title) <= 0) return
+            mergeWithAux(arr, aux, left, mid, right)
+        }
+    }
+
+    function mergeWithAux(arr: Movie[], aux: Movie[], left: number, mid: number, right: number) {
         for (let i = left; i <= right; i++) aux[i] = arr[i]
         let i = left, j = mid + 1, k = left
         while (i <= mid && j <= right) {
-            if (compareFn(aux[i], aux[j]) <= 0) arr[k++] = aux[i++]
-            else arr[k++] = aux[j++]
+            const leftVal = getSortValue(aux[i], sortKey.value)
+            const rightVal = getSortValue(aux[j], sortKey.value)
+            arr[k++] = leftVal.localeCompare(rightVal) <= 0 ? aux[i++] : aux[j++]
         }
         while (i <= mid) arr[k++] = aux[i++]
     }
 
+    // ===== RUN BOTH SORTS AND MEASURE TIME =====
+    function runComparison() {
+        const arr1 = JSON.parse(JSON.stringify(searchedData.value)) as Movie[]
+        const arr2 = JSON.parse(JSON.stringify(searchedData.value)) as Movie[]
+        const aux = new Array(arr2.length)
 
-    // COMPARISON LOGIC
-    const localMovies = ref([...props.movies])
-    const sortKey = ref<'title' | 'author' | 'director' | 'cinema' | 'timeslot'>('title')
-    const results = ref<{ name: string; time: number; mem: number }[]>([])
+        const start1 = performance.now()
+        originalMergeSort(arr1, 0, arr1.length - 1)
+        const end1 = performance.now()
 
-    const handleAddMovie = () => alert('clicked')
+        const start2 = performance.now()
+        improvedMergeSort(arr2, aux, 0, arr2.length - 1)
+        const end2 = performance.now()
 
-    const measurePerformance = (fn: () => void): { time: number; mem: number } => {
-        const memBefore = (performance as any).memory?.usedJSHeapSize ?? 0
-        const t0 = performance.now()
-        fn()
-        const t1 = performance.now()
-        const memAfter = (performance as any).memory?.usedJSHeapSize ?? 0
-        const memDiff = Math.abs(memAfter - memBefore)
-        return {
-            time: t1 - t0,
-            mem: memDiff,
-        }
+        originalSorted.value = arr1
+        improvedSorted.value = arr2
+        originalTime.value = end1 - start1
+        improvedTime.value = end2 - start2
     }
 
+    onMounted(() => runComparison())
 
-    const runSorts = () => {
-        const compareFn = (a: Movie, b: Movie) => {
-            if (sortKey.value === 'timeslot') {
-            const toMinutes = (time: string) => {
-                const [h, m] = time.split(':').map(Number)
-                return h * 60 + m
-            }
-            return toMinutes(a.start) - toMinutes(b.start)
-            }
-            return a[sortKey.value].localeCompare(b[sortKey.value])
-        }
+    // ===== PAGINATION =====
+    const paginatedData = computed(() => {
+        const start = (currentPage.value - 1) * itemsPerPage
+        return improvedSorted.value.slice(start, start + itemsPerPage)
+    })
 
-        const base = [...props.movies]
-        const aux = new Array(base.length)
 
-        const resultSet: { name: string; time: number; mem: number }[] = []
-
-        // Traditional
-        let sorted1: Movie[] = []
-        const r1 = measurePerformance(() => {
-            sorted1 = mergeSort([...base], compareFn)
-        })
-        resultSet.push({ name: 'Traditional Merge Sort', ...r1 })
-
-        // Improved
-        let sorted2 = [...base]
-        const r2 = measurePerformance(() => {
-            improvedMergeSort(sorted2, aux, 0, sorted2.length - 1, compareFn)
-        })
-        resultSet.push({ name: 'Improved Merge Sort', ...r2 })
-
-        // Display results
-        results.value = resultSet
-
-        // Show the improved-sorted list
-        localMovies.value = sorted2
-        }
-
-        // Automatically run sorts whenever user changes key
-        watch(sortKey, () => runSorts(), { immediate: true })
-        watch(sortKey, () => {
+    // // ===== WATCHERS =====
+    // watch(sortKey, () => {
+    //     currentPage.value = 1
+    //     runComparison()
+    // })
+    // watch(searchQuery, () => {
+    //     currentPage.value = 1
+    //     runComparison()
+    // })
+    watch([sortKey, searchQuery], () => {
         currentPage.value = 1
-        runSorts()
-    }, { immediate: true })
+        runComparison()
+    }, { flush: 'sync' })
 
-    const handleDelete = (id: number) => {
-        if (confirm("Are you sure you want to delete?")) {
-            router.delete(route('movie.destroy', {id}))
-        }
+    const page = usePage()
+
+    const handleDelete = () => {
+        router.delete(route('movie.destroy', { id: movieToDelete.value!.id }), {
+            preserveState: false,
+            onSuccess: () => {
+                toast.success('Deletion Successful!', {
+                    description: `Movie: ${movieToDelete.value!.title} has been deleted successfully.`,
+                })
+            },
+            onError: () => {
+                toast.error('Deletion Failed.', {
+                    description: `Something went wrong while deleting the movie.`,
+                })
+            }
+        })
+    }
+
+    const movieToDelete = ref<{ id: number; title: string } | null>(null)
+    const showDialog = ref(false)
+
+    // open dialog and remember which movie to delete
+    const confirmDelete = (id: number, title: string) => {
+        movieToDelete.value = { id, title }
+        showDialog.value = true
     }
 
 </script>
 
-
 <template>
-  <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="p-4 space-y-6">
-        <div class="flex gap-4 items-center">
-            <Button class="w-[160px]" @click="handleAddMovie">Add Movie</Button>
-            <Label class="ml-5">Sort By: </Label>
-            <Select v-model="sortKey">
-            <SelectTrigger class="w-[200px]">
-                <SelectValue placeholder="Sort by..." />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="title">Title</SelectItem>
-                <SelectItem value="director">Director</SelectItem>
-                <SelectItem value="cinema">Cinema</SelectItem>
-                <SelectItem value="timeslot">Timeslot (Start)</SelectItem>
-            </SelectContent>
-            </Select>
-        </div>
+    <Head title="Movies" />
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="p-4">
+            <div class="flex justify-between">
+                <div class="mb-4 w-[220px]">
+                    <Label class="text-sm mb-2 ml-1">Sort By:</Label>
+                    <Select id="sortKey" v-model="sortKey" class="w-[200px]">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sort By" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup class="w-[200px]">
+                                <SelectLabel for="sortKey">Sort By</SelectLabel>
+                                <SelectItem value="title">Title</SelectItem>
+                                <SelectItem value="author">Author</SelectItem>
+                                <SelectItem value="director">Director</SelectItem>
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </div>
 
-        <Table>
-            <TableHeader>
-            <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Director</TableHead>
-                <TableHead>Cinema</TableHead>
-                <TableHead>Timeslot</TableHead>
-                <TableHead class="text-center">Action</TableHead>
-            </TableRow>
-            </TableHeader>
+                <div class="w-[500px]">
+                    <Label class="text-sm mb-2 ml-1 italic">Search any keyword:</Label>
+                    <Input type="text" placeholder="Search" v-model="searchQuery" />
+                </div>
+            </div>
 
-            <TableBody>
-            <TableRow v-for="movie in paginatedMovies" :key="movie.id">
-                <TableCell>{{ movie.id }}</TableCell>
-                <TableCell>{{ movie.title }}</TableCell>
-                <TableCell>{{ movie.author }}</TableCell>
-                <TableCell>{{ movie.director }}</TableCell>
-                <TableCell>{{ movie.cinema }}</TableCell>
-                <TableCell>{{ movie.start + ' - ' + movie.end }}</TableCell>
-                <TableCell class="space-x-2 flex justify-center">
-                    <Link :href="route('movie.book', {id: movie.id})">
-                        <Button>
-                            <SquareMousePointerIcon /> Book
-                        </Button>
-                    </Link>
-                    <Link :href="route()">
-                        <Button class="bg-blue-500">
-                            <SquarePenIcon /> Edit
-                        </Button>
-                    </Link>
-                    <Link>
-                        <Button class="bg-red-500" @click="handleDelete(movie.id)">
-                            <Trash2Icon /> Delete
-                        </Button>
-                    </Link>
-                </TableCell>
-            </TableRow>
-            </TableBody>
-        </Table>
-        <div class="flex justify-start mt-6 ">
-            <Pagination :items-per-page="perPage">
-                <PaginationContent>
-                
-                    <PaginationFirst
-                    :disabled="currentPage === 1"
-                    @click="currentPage = 1"
-                    />
+            <Table>
+                <TableCaption>
+                    <p v-if="paginatedData.length > 0" >List of all movies.</p>
+                    <p v-else >No results.</p>
+                </TableCaption>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Author</TableHead>
+                        <TableHead>Director</TableHead>
+                        <TableHead>Genre</TableHead>
+                        <TableHead class="flex justify-center">
+                            <Label>Action</Label>
+                        </TableHead>
+                    </TableRow>
+                </TableHeader>
 
-                    <PaginationPrevious
-                    :disabled="currentPage === 1"
-                    @click="currentPage--"
-                    />
-
-                    <PaginationItem
-                        v-for="(page, idx) in visiblePages"
-                        :key="idx"
-                        >
-                        <template v-if="page === '...'">
-                            <PaginationEllipsis />
-                        </template>
-                        <template v-else>
-                            <Button
-                            variant="outline"
-                            size="sm"
-                            :class="page === currentPage ? 'bg-primary text-white' : ''"
-                            @click="currentPage = page"
-                            >
-                            {{ page }}
+                <TableBody>
+                    <TableRow v-for="movie in paginatedData" :key="movie.id">
+                        <TableCell>{{ movie.title }}</TableCell>
+                        <TableCell>{{ movie.author }}</TableCell>
+                        <TableCell>{{ movie.director }}</TableCell>
+                        <TableCell>{{ movie.genre.name }}</TableCell>
+                        <TableCell class="flex justify-center space-x-2">
+                            <Button class="bg-blue-600"
+                            @click="$inertia.visit(route('movie.edit', {id: movie.id}))">
+                                Edit
                             </Button>
+                            <Button class="bg-red-600"
+                            @click="confirmDelete(movie.id, movie.title)">
+                                Delete
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+
+            <!-- Pagination -->
+            <div class="mt-4 flex justify-center">
+                <Pagination
+                    v-slot="{ page }"
+                    :items-per-page="itemsPerPage"
+                    :total="improvedSorted.length"
+                    v-model:page="currentPage"
+                >
+                    <PaginationContent v-slot="{ items }">
+                        <PaginationPrevious />
+                        <template v-for="(item, index) in items" :key="index">
+                            <PaginationItem
+                                v-if="item.type === 'page'"
+                                :value="item.value"
+                                :is-active="item.value === page"
+                            >
+                                {{ item.value }}
+                            </PaginationItem>
                         </template>
-                    </PaginationItem>
-                    
-                    <PaginationNext
-                    class="ml-2"
-                    :disabled="currentPage === totalPages"
-                    @click="currentPage++"
-                    />
-                
-                    <PaginationLast
-                    :disabled="currentPage === totalPages"
-                    @click="currentPage = totalPages"
-                    />
-                    
-                </PaginationContent>
-            </Pagination>
+                        <PaginationEllipsis :index="4" />
+                        <PaginationNext />
+                    </PaginationContent>
+                </Pagination>
+            </div>
+
+            <!-- Sorting performance summary -->
+            <div class="mt-6 text-center">
+                <h2 class="text-lg font-semibold mb-2">🧠 Sorting Performance Comparison</h2>
+                <p>Original Merge Sort: <strong>{{ originalTime.toFixed(3) }} ms</strong></p>
+                <p>Improved Merge Sort (Run Detection): <strong>{{ improvedTime.toFixed(3) }} ms</strong></p>
+                <p class="mt-2 text-sm text-gray-500">
+                    Difference: <strong>{{ (originalTime - improvedTime).toFixed(3) }} ms</strong>
+                </p>
+            </div>
+            <AlertDialog v-model:open="showDialog">
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        Are you sure you want to delete this movie? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                        <AlertDialogCancel @click="showDialog = false">Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                        class="bg-red-600 text-white hover:bg-red-700"
+                        @click="handleDelete"
+                        >
+                            Yes, Delete!
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
-
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Algorithm</TableHead>
-            <TableHead>Execution Time (ms)</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow v-for="r in results" :key="r.name">
-            <TableCell>{{ r.name }}</TableCell>
-            <TableCell>{{ r.time.toFixed(3) }}</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
-  </AppLayout>
+    </AppLayout>
 </template>

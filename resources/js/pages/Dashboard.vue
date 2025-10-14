@@ -19,13 +19,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface Props {
-    movies: Movie[];
-    bookings: Booking[];
-    seats: Seat[];
-}
-
-const props = defineProps<Props>();
+const props = defineProps<{
+    totalMovies: number,
+    totalBookings: number,
+    totalSeatsSold: number,
+}>()
 
 </script>
 
@@ -39,7 +37,7 @@ const props = defineProps<Props>();
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
                             <CardDescription class="text-lg">Total Movies</CardDescription>
-                            <CardTitle class="text-6xl object-right">{{ props.movies.length }}</CardTitle>
+                            <CardTitle class="text-6xl object-right">{{ props.totalMovies }}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
@@ -47,7 +45,7 @@ const props = defineProps<Props>();
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
                             <CardDescription class="text-lg">Total Bookings</CardDescription>
-                            <CardTitle class="text-6xl object-right">{{ props.bookings.length }}</CardTitle>
+                            <CardTitle class="text-6xl object-right">{{ props.totalBookings }}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
@@ -55,7 +53,7 @@ const props = defineProps<Props>();
                     <Card class="flex w-full h-[140px]">
                         <CardHeader>
                             <CardDescription class="text-lg">Total Seats Sold</CardDescription>
-                            <CardTitle class="text-6xl object-right">{{ props.seats.length }}</CardTitle>
+                            <CardTitle class="text-6xl object-right">{{ props.totalSeatsSold }}</CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
