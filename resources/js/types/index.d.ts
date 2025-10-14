@@ -26,25 +26,57 @@ export type AppPageProps<
     sidebarOpen: boolean;
 };
 
-export interface Movie {
-    id: number;
-    title: string;
-    author: string;
-    director: string;
-    cinema: string;
-    start: string;
-    end: string;
+export interface Booking {
+    id: number
+    customer_name: string
+    schedule: Schedule
+    seats: string[]  // Array of seat numbers like ["A1", "B2", "C5"]
+    seat_ids: number[]
+    booking_count: number
+    created_at?: string
 }
 
-export interface Booking {
+export interface Genre {
+  id: number
+  name: string
+}
+
+export interface Movie {
+  id: number
+  title: string
+  author: string;
+  director: string;
+  genre: Genre
+}
+
+export interface Cinema {
+  id: number
+  name: string
+}
+
+export interface City {
+  id: number
+  name: string
+}
+
+export interface Timeslot {
+  id: number
+  start_time: string
+  end_time: string
+}
+
+export interface Schedule {
+  id: number
+  movie: Movie
+  cinema: Cinema
+  city: City
+  timeslot: Timeslot
+  show_date: string;
+}
+
+export interface Customer {
     id: number;
-    customer_fname: string;
-    customer_midname: string;
-    customer_lname: string;
-    title: string;
-    cinema: string;
-    timeslot: string;
-    seats: string;
+    name: string;
 }
 
 export interface Seat {
