@@ -3,6 +3,21 @@
     import type { BreadcrumbItem, Booking } from '@/types';
     import { Head, router } from '@inertiajs/vue3';
     import { ref } from 'vue';
+    import { Label } from '@/components/ui/label';
+    import { Button } from '@/components/ui/button';
+    import { TrashIcon } from 'lucide-vue-next';
+    import { toast } from 'vue-sonner'
+    import { route } from 'ziggy-js';
+    import {
+      AlertDialog,
+      AlertDialogAction,
+      AlertDialogCancel,
+      AlertDialogContent,
+      AlertDialogDescription,
+      AlertDialogFooter,
+      AlertDialogHeader,
+      AlertDialogTitle,
+    } from '@/components/ui/alert-dialog'
 
     import {
         Table,
@@ -37,6 +52,15 @@
         }
     }>()
 
+    const showDialog = ref(false)
+    const bookingToDelete = ref<Booking | null>(null)
+
+    const confirmDelete = (booking: Booking) => {
+      bookingToDelete.value = booking
+      showDialog.value = true
+    }
+
+
     // reactive pagination state
     const currentPage = ref(props.bookings.current_page)
     const itemsPerPage = props.bookings.per_page
@@ -56,6 +80,31 @@
             day: 'numeric',
         })
     }
+
+    const isDeleting = ref(false)
+
+    const handleDelete = (id: number) => {
+        if (!bookingToDelete.value) return
+        isDeleting.value = true
+        router.delete(route('bookings.destroy', { id: bookingToDelete.value.id }), {
+          preserveState: false,
+          onSuccess: () => {
+            toast.success('Booking Deleted!', {
+              description: `Bookings for ${bookingToDelete.value!.customer_name} has been deleted successfully.`,
+            })
+            showDialog.value = false
+            bookingToDelete.value = null
+          },
+          onError: () => {
+            toast.error('Deletion Failed!', {
+              description: 'Something went wrong while deleting the booking.',
+            })
+          },
+          onFinish: () => {
+            isDeleting.value = false
+          }
+        })
+    }
 </script>
 
 <template>
@@ -63,7 +112,10 @@
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="p-4">
       <Table>
-        <TableCaption>A list of customer bookings.</TableCaption>
+        <TableCaption>
+            <p v-if="props.bookings.data.length > 0">A list of customer bookings.</p>
+            <p v-else>Empty Bookings.</p>
+        </TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Customer</TableHead>
@@ -74,6 +126,9 @@
             <TableHead>Timeslot</TableHead>
             <TableHead>Seats</TableHead>
             <TableHead>Date Booked</TableHead>
+            <TableHead class="flex justify-center">
+                <Label>Action</Label>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -89,6 +144,13 @@
             </TableCell>
             <TableCell>{{ booking.seats.join(', ') }}</TableCell>
             <TableCell>{{ formatDate(booking.created_at as string) }}</TableCell>
+            <TableCell>
+                <Button class="bg-red-700 hover:bg-red-500"
+                :disabled="isDeleting"
+                @click="confirmDelete(booking)">
+                  <TrashIcon />Delete
+                </Button>
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
@@ -125,6 +187,27 @@
           </PaginationContent>
         </Pagination>
       </div>
+      <AlertDialog :open="showDialog" @update:open="showDialog = $event">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete
+              <span class="font-semibold">{{ bookingToDelete?.customer_name }}</span>’s
+              booking? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel @click="showDialog = false">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              class="bg-red-600 text-white hover:bg-red-700"
+              @click="handleDelete"
+            >
+              Yes, Delete!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </AppLayout>
 </template>
