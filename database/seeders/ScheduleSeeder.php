@@ -16,13 +16,14 @@ class ScheduleSeeder extends Seeder
         //
         $schedules = collect();
 
-        for ($city = 1; $city <= 500; $city++) {
+        for ($city = 1; $city <= 100; $city++) {
             for ($cinema = 1; $cinema <= 5; $cinema++) {
                 for ($slot = 1; $slot <= 10; $slot++) {
                     $schedules->push(Schedule::make([
                         'movie_id' => rand(1, 10000),
                         'cinema_id' => $cinema,
                         'city_id' => $city,
+                        'show_date' => now()->addDays(rand(0, 30))->toDateString(),
                         'timeslot_id' => $slot,
                     ])->getAttributes());
                 }
