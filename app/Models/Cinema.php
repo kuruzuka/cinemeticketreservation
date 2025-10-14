@@ -13,11 +13,28 @@ class Cinema extends Model
         "name",
     ];
 
-    public function movies() {
-        return $this->hasMany(Movie::class);
+    // A cinema can have many schedules
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
     }
 
-    public function seats() {
-        return $this->hasMany(Seat::class);
+    // All movies showing in this cinema
+    public function movies()
+    {
+        return $this->hasManyThrough(Movie::class, Schedule::class);
+    }
+
+    // All bookings made in this cinema
+    public function bookings()
+    {
+        return $this->hasManyThrough(Booking::class, Schedule::class);
+    }
+
+    // All customers who booked at this cinema
+    public function customers()
+    {
+        return $this->hasManyThrough(Customer::class, Booking::class, 'schedule_id', 'id', 'id', 'customer_id')
+                    ->distinct();
     }
 }

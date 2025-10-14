@@ -13,7 +13,16 @@ class Seat extends Model
         "seat_number",
     ] ;
 
-    public function cinemas() {
+    // A seat can be booked many times (across different schedules)
+    public function bookings()
+    {
         return $this->hasMany(Booking::class);
+    }
+
+    // Customers who have ever used this seat (across all schedules)
+    public function customers()
+    {
+        return $this->hasManyThrough(Customer::class, Booking::class)
+                    ->distinct();
     }
 }

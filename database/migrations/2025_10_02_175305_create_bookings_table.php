@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
+            $table->string('customer_name');
             $table->foreignId('schedule_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
             $table->foreignId('seat_id')->constrained()->noActionOnDelete()->noActionOnUpdate();
-            $table->decimal('price',10,2);
             $table->unique(['seat_id', 'schedule_id']);
             $table->timestamps();
         });

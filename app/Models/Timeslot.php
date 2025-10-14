@@ -14,4 +14,22 @@ class Timeslot extends Model
         "start_time",
         "end_time",
     ] ;
+
+    // A timeslot can belong to many schedules
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    // All movies playing in this timeslot
+    public function movies()
+    {
+        return $this->hasManyThrough(Movie::class, Schedule::class);
+    }
+
+    // All bookings during this timeslot
+    public function bookings()
+    {
+        return $this->hasManyThrough(Booking::class, Schedule::class);
+    }
 }

@@ -11,9 +11,18 @@ use Inertia\Inertia;
 class DashboardRouter extends Controller
 {
     public function index() {
-        $movies = Movie::all();
-        $bookings = Booking::all();
-        $seats = Seat::all();
-        return Inertia::render("Dashboard", compact("movies", "bookings", "seats"));
+        $totalMovies = Movie::count();
+        $totalBookings = \DB::table('bookings')
+            ->select('customer_name', 'schedule_id')
+            ->groupBy('customer_name', 'schedule_id')
+            ->get()
+            ->count();
+        $totalSeatsSold = Booking::distinct('seat_id')->count('seat_id'); // unique seats booked
+
+        return Inertia::render('Dashboard', [
+            'totalMovies' => $totalMovies,
+            'totalBookings' => $totalBookings,
+            'totalSeatsSold' => $totalSeatsSold,
+        ]);
     }
 }
