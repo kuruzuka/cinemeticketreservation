@@ -60,6 +60,8 @@ The system's architecture and entity relationships were mapped out using a UML d
 
 You can view the full diagram on Lucidchart:
 [**View UML Diagram**](https://lucid.app/lucidchart/5539e55c-6aa0-4cc3-9573-5e5c98d9b68c/edit?invitationId=inv_8e99c949-9bd9-4952-a803-36a8888c43c0)
+<img width="1060" height="600" alt="Cinema System UML" src="https://github.com/user-attachments/assets/34fe25af-c16c-4577-a808-83dfb38c4221" />
+
 
 *(It is recommended to add a static image of the UML diagram here in the repository for quick reference.)*
 
